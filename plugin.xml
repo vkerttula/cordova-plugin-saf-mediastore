@@ -102,10 +102,7 @@
         <source-file src="src/res/layout/file_row.xml" target-dir="res/layout" />
         <source-file src="src/res/layout/main.xml" target-dir="res/layout" />
 
-        <source-file src="src/res/values/colors.xml" target-dir="res/values" />  
-        <source-file src="src/res/values/styles.xml" target-dir="res/values" />  
-        <source-file src="src/res/values-v11/styles.xml" target-dir="res/values-v11" />  
-        <source-file src="src/res/values-v14/styles.xml" target-dir="res/values-v14" />
+        <source-file src="src/res/values/colors.xml" target-dir="res/values" />
   
   </platform>
 
