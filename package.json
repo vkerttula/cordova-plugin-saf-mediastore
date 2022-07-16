@@ -1,31 +1,31 @@
 {
-  "name": "cordova-plugin-saf-mediastore",
-  "version": "1.0.0",
-  "description": "Cordova Plugin to support read/write on Internal, External and SD Card Storage - Supports Android 4.4+",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "cordova": {
-    "id": "/cordova-plugin-saf-mediastore",
-    "platforms": [
-      "android"
-    ]
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/customautosys/cordova-plugin-saf-mediastore.git"
-  },
-  "keywords": [
-    "cordova",
-     "file",
-    "ecosystem:cordova",
-    "cordova-android"
-  ],
-  "author": "suraj",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/customautosys/cordova-plugin-saf-mediastore/issues"
-  },
-  "homepage": "https://github.com/customautosys/cordova-plugin-saf-mediastore#readme"
+	"name":"cordova-plugin-saf-mediastore",
+	"version":"1.0.0",
+	"description":"Cordova Plugin to read and save files using the Storage Access Framework and Mediastore on Android only.",
+	"main":"index.js",
+	"scripts":{
+		"test":"echo \"Error: no test specified\" && exit 1"
+	},
+	"cordova":{
+		"id":"cordova-plugin-saf-mediastore",
+		"platforms":[
+			"android"
+		]
+	},
+	"repository":{
+		"type":"git",
+		"url":"git+https://github.com/customautosys/cordova-plugin-saf-mediastore.git"
+	},
+	"keywords":[
+		"cordova",
+		"file",
+		"ecosystem:cordova",
+		"cordova-android"
+	],
+	"author":"Wilson Foo Yu Kang <wilson.foo@customautosys.com>",
+	"license":"SEE LICENSE IN https://customautosys.com/licence.html",
+	"bugs":{
+		"url":"https://github.com/customautosys/cordova-plugin-saf-mediastore/issues"
+	},
+	"homepage":"https://github.com/customautosys/cordova-plugin-saf-mediastore#readme"
 }
