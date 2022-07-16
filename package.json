@@ -1,5 +1,5 @@
 {
-  "name": "cordova-documents-provider-read-write",
+  "name": "cordova-plugin-saf-mediastore",
   "version": "1.0.0",
   "description": "Cordova Plugin to support read/write on Internal, External and SD Card Storage - Supports Android 4.4+",
   "main": "index.js",
@@ -7,14 +7,14 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "cordova": {
-    "id": "/cordova-documents-provider-read-write",
+    "id": "/cordova-plugin-saf-mediastore",
     "platforms": [
       "android"
     ]
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sahusoftcom/cordova-documents-provider-read-write.git"
+    "url": "git+https://github.com/customautosys/cordova-plugin-saf-mediastore.git"
   },
   "keywords": [
     "cordova",
@@ -25,7 +25,7 @@
   "author": "suraj",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/sahusoftcom/cordova-documents-provider-read-write/issues"
+    "url": "https://github.com/customautosys/cordova-plugin-saf-mediastore/issues"
   },
-  "homepage": "https://github.com/sahusoftcom/cordova-documents-provider-read-write#readme"
+  "homepage": "https://github.com/customautosys/cordova-plugin-saf-mediastore#readme"
 }

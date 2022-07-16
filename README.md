@@ -1,41 +1,56 @@
-# cordova-documentsproviders-read-write
+# cordova-plugin-saf-mediastore
 
-##Storage using DocumentsProvider, which provides access to Internal, External & SD Card storage.  
+##Read and save files using the Storage Access Framework and Mediastore
 
-Ref:https://developer.android.com/reference/android/content/Intent.html#ACTION_OPEN_DOCUMENT_TREE
-
-Limitation: Users
-Android API Level: 19
-Works on Android Version: 4.4+
-
+This plugin allows you to read and save files using the Storage Access Framework and Mediastore on Android only.
 
 ##Available methods
 
-openDocumentTree() - It opens the Native Folder/Path Selector and returns content uri.
+```typescript
+selectFolder(uri:string):Promise<string>
+```
+Launches an Intent to select a folder to which files can be saved. Returns the content URI.
 
+```typescript
+selectFile(uri:string):Promise<string>
+```
+Launches an Intent to select a file. Returns the content URI.
 
-startDownload(Array(fileURL, token, ContentURI, Name, ContentType)) - it starts the download in background and using Native Android Code and keeps sending the success (ie number of bits completed).
+```typescript
+openFolder(uri:string):Promise<void>
+```
+Launches an Intent to open a folder in the folder picker.
 
+```typescript
+openFile(uri:string):Promise<void>
+```
+Launches an Intent to open a file.
 
-abortDownload() - it stops the current downloading item (as this is single thread, we are not passing the reference)
+```typescript
+readFile(uri:string):Promise<Blob>
+```
+Reads a file as a Blob.
 
+```typescript
+writeFile({
+	data:Blob,
+	filename:string,
+	folder?:string,
+	subfolder?:string
+}):Promise<string>
+```
+Writes a file to a specific filename, with the folder and subfolder being optional. The subfolder will be created if it does not exist, and the default folder is the Downloads folder. Returns the content URI.
 
-createDirectory(Array(Name, ContentURI)) - for creating the directory (is used when only a folder needs to be created)
+```typescript
+saveFile({
+	data:Blob,
+	filename?:string,
+	folder?:string
+}):Promise<string>
+```
+Launches a file picker Intent to save a file, with the preferred filename and folder being optional. Returns the content URI.
 
-
-getFreeSpace(Array(ContentURI)) - returns total disk space available in bytes.
-
-
-Ionic App
-window.nativeDirectory.<function> (args, successCallback, errorCallback);
-
-
-
-
-
-
-To Provide access on Android 4.4 - below 5.0 
-
-All the Android Plugin functions are achieved using the Environment class.
-Based on the Android Version, the Java class is switched between the DocumentsProvider and the access using Environment class.
-
+To call methods:
+```
+window.safMediastore.<function>(params); //returns a Promise
+await window.safMediastore.<function>(params); //in an async function

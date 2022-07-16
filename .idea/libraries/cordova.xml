@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="cordova">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../Gitlab/quasar_upgrade/caselist/src-cordova/platforms/android/CordovaLib/build/intermediates/compile_library_classes_jar/debug/classes.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../Gitlab/quasar_upgrade/caselist/src-cordova/platforms/android/CordovaLib/build/intermediates/compile_r_class_jar/debug/R.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../Gitlab/quasar_upgrade/caselist/src-cordova/platforms/android/CordovaLib/build/intermediates/library_java_res/debug/res.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../Gitlab/quasar_upgrade/caselist/src-cordova/platforms/android/CordovaLib/build/intermediates/runtime_library_classes_jar/debug/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
