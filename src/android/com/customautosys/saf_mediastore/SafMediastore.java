@@ -1,72 +1,92 @@
 package com.customautosys.saf_mediastore;
 
 import android.content.Intent;
+import android.provider.DocumentsContract;
 
 import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaWebView;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.util.function.BiFunction;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
 
 public class SafMediastore extends CordovaPlugin{
+	protected HashMap<String,CallbackContext> callbacks=new HashMap<>();
+	protected CordovaInterface cordovaInterface;
+	protected CordovaWebView cordovaWebView;
 
-	public enum Action{
-		selectFolder(SafMediastore::selectFolder),
-		openFolder(SafMediastore::openFolder),
-		openFile(SafMediastore::openFile),
-		readFile(SafMediastore::readFile),
-		writeFile(SafMediastore::writeFile),
-		saveFile(SafMediastore::saveFile),
-		MAX_VALUE(null);
-		public BiFunction<JSONArray,CallbackContext,Boolean> function;
-
-		Action(BiFunction<JSONArray,CallbackContext,Boolean> function){
-			this.function=function;
-		}
+	public enum Action {
+		selectFolder,
+		selectFile,
+		openFolder,
+		openFile,
+		readFile,
+		writeFile,
+		saveFile,
 	}
 
-	protected static CallbackContext callbacks[]=new CallbackContext[Action.MAX_VALUE.ordinal()];
+	@Override
+	public void initialize(CordovaInterface cordovaInterface,CordovaWebView webView){
+		this.cordovaInterface=cordovaInterface;
+		this.cordovaWebView=cordovaWebView;
+	}
 
 	@Override
-	public boolean execute(String actionString,JSONArray args,CallbackContext callbackContext) throws JSONException{
-		Action action=null;
+	public boolean execute(String action,JSONArray args,CallbackContext callbackContext)throws JSONException{
+		Method method=null;
 		try{
-			action=Action.valueOf(actionString);
+			method=this.getClass().getMethod(action,JSONArray.class,CallbackContext.class);
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		if(action==null||action.function==null)return false;
-		return action.function.apply(args,callbackContext);
+		if(method==null||!Modifier.isPublic(method.getModifiers()))return false;
+		try{
+			return (Boolean)method.invoke(this,args,callbackContext);
+		}catch(Exception e){
+			return false;
+		}
 	}
 
-	public static Boolean selectFolder(JSONArray args,CallbackContext callbackContext){
-		callbacks[Action.selectFolder.ordinal()]=callbackContext;
+	public boolean selectFolder(JSONArray args,CallbackContext callbackContext)throws JSONException{
+		String initialFolder=null;
+		try{
+			initialFolder=args.getString(0);
+		}catch(JSONException e){
+			e.printStackTrace();
+		}
+		Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+		if(initialFolder!=null)intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,initialFolder);
+		intent.putExtra("SafMediastore.getCallbackId",callbackContext.getCallbackId());
+		callbacks.put(callbackContext.getCallbackId(),callbackContext);
+		cordovaInterface.startActivityForResult(this,intent,Action.selectFolder.ordinal());
 		return true;
 	}
 
-	public static Boolean openFolder(JSONArray args,CallbackContext callbackContext){
-		callbacks[Action.openFolder.ordinal()]=callbackContext;
+	public boolean selectFile(JSONArray args,CallbackContext callbackContext)throws JSONException{
 		return true;
 	}
 
-	public static Boolean openFile(JSONArray args,CallbackContext callbackContext){
-		callbacks[Action.openFile.ordinal()]=callbackContext;
+	public boolean openFolder(JSONArray args,CallbackContext callbackContext){
 		return true;
 	}
 
-	public static Boolean readFile(JSONArray args,CallbackContext callbackContext){
-		callbacks[Action.readFile.ordinal()]=callbackContext;
+	public boolean openFile(JSONArray args,CallbackContext callbackContext){
 		return true;
 	}
 
-	public static Boolean writeFile(JSONArray args,CallbackContext callbackContext){
-		callbacks[Action.writeFile.ordinal()]=callbackContext;
+	public boolean readFile(JSONArray args,CallbackContext callbackContext){
 		return true;
 	}
 
-	public static Boolean saveFile(JSONArray args,CallbackContext callbackContext){
-		callbacks[Action.saveFile.ordinal()]=callbackContext;
+	public boolean writeFile(JSONArray args,CallbackContext callbackContext){
+		return true;
+	}
+
+	public boolean saveFile(JSONArray args,CallbackContext callbackContext){
 		return true;
 	}
 
