@@ -1,22 +1,29 @@
 package com.customautosys.saf_mediastore;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.CancellationSignal;
+import android.os.Environment;
 import android.os.FileUtils;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
 import android.provider.DocumentsProvider;
+import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 import android.webkit.ValueCallback;
 
+import androidx.documentfile.provider.DocumentFile;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
+import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,6 +34,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
@@ -133,8 +141,10 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 	}
 
 	public boolean readFile(JSONArray args,CallbackContext callbackContext){
-		try(InputStream inputStream=cordovaInterface.getContext().getContentResolver().openInputStream(Uri.parse(args.getString(0)))){
-			ByteArrayOutputStream byteArrayOutputStream=new ByteArrayOutputStream();
+		try(
+			InputStream inputStream=cordovaInterface.getContext().getContentResolver().openInputStream(Uri.parse(args.getString(0)));
+			ByteArrayOutputStream byteArrayOutputStream=new ByteArrayOutputStream()
+		){
 			FileUtils.copy(inputStream, byteArrayOutputStream);
 			callbackContext.success(byteArrayOutputStream.toByteArray());
 			return true;
@@ -145,7 +155,47 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 	}
 
 	public boolean writeFile(JSONArray args,CallbackContext callbackContext){
-		return true;
+		try{
+			JSONObject params=args.getJSONObject(0);
+			String filename=params.getString("filename");
+			String mimeType=MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(filename));
+			String folder=null;
+			try{
+				folder=params.getString("folder");
+			}catch(Exception e){
+				debugLog(e);
+			}
+			String subFolder="";
+			try{
+				subFolder=params.getString("subFolder");
+			}catch(Exception e){}
+			if(!subFolder.startsWith("/"))subFolder="/"+subFolder;
+			Uri uri=null;
+			if(folder!=null){
+				uri=DocumentFile.fromTreeUri(
+					cordovaInterface.getContext(),
+					Uri.parse(folder)
+				).createDirectory(subFolder).createFile(
+					mimeType,
+					filename
+				).getUri();
+			}else{
+				ContentResolver contentResolver=cordovaInterface.getContext().getContentResolver();
+				ContentValues contentValues=new ContentValues();
+				contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME,filename);
+				contentValues.put(MediaStore.MediaColumns.MIME_TYPE,mimeType);
+				contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH,Environment.DIRECTORY_DOWNLOADS+subFolder);
+				uri=contentResolver.insert(MediaStore.Files.getContentUri("external"),contentValues);
+			}
+			try(OutputStream outputStream=cordovaInterface.getContext().getContentResolver().openOutputStream(uri)){
+				outputStream.write(Base64.decode(params.getString("data"),Base64.DEFAULT));
+			}
+			callbackContext.success();
+			return true;
+		}catch(Exception e){
+			callbackContext.error(debugLog(e));
+			return false;
+		}
 	}
 
 	public boolean saveFile(JSONArray args,CallbackContext callbackContext){

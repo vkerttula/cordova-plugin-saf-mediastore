@@ -27,13 +27,13 @@ openFile(uri:string):Promise<void>
 Launches an Intent to open a file.
 
 ```typescript
-readFile(uri:string):Promise<Blob>
+readFile(uri:string):Promise<ArrayBuffer>
 ```
 Reads a file as a Blob.
 
 ```typescript
 writeFile({
-	data:Blob,
+	data:ArrayBuffer,
 	filename:string,
 	folder?:string,
 	subfolder?:string
@@ -43,7 +43,7 @@ Writes a file to a specific filename, with the folder and subfolder being option
 
 ```typescript
 saveFile({
-	data:Blob,
+	data:ArrayBuffer,
 	filename?:string,
 	folder?:string
 }):Promise<string>
