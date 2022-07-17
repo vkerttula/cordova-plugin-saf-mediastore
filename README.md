@@ -1,10 +1,10 @@
 # cordova-plugin-saf-mediastore
 
-##Read and save files using the Storage Access Framework and Mediastore
+## Read and save files using the Storage Access Framework and Mediastore
 
 This plugin allows you to read and save files using the Storage Access Framework and Mediastore on Android only.
 
-##Available methods
+## Available methods
 
 ```typescript
 selectFolder(uri:string):Promise<string>
