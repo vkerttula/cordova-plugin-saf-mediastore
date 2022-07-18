@@ -5,13 +5,13 @@ declare global{
         openFolder(uri:string):Promise<void>,
         openFile(uri:string):Promise<void>,
         readFile(uri:string):Promise<ArrayBuffer>,
-        writeFile({
+        writeFile(params:{
             data:ArrayBuffer,
             filename:string,
             folder?:string,
             subfolder?:string
         }):Promise<string>,
-        saveFile({
+        saveFile(params:{
             data:ArrayBuffer,
             filename?:string,
             folder?:string
