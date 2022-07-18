@@ -8,7 +8,7 @@ interface SafMediastore{
 		data:ArrayBuffer,
 		filename:string,
 		folder?:string,
-		subfolder?:string
+		subFolder?:string
 	}):Promise<string>,
 	saveFile(params:{
 		data:ArrayBuffer,
