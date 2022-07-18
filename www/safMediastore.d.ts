@@ -1,3 +1,5 @@
+export {};
+
 declare global{
     interface SafMediastore{
         selectFolder(uri?:string):Promise<string>,
