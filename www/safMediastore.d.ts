@@ -1,7 +1,7 @@
 declare global{
     interface SafMediastore{
-        selectFolder(uri:string):Promise<string>,
-        selectFile(uri:string):Promise<string>,
+        selectFolder(uri?:string):Promise<string>,
+        selectFile(uri?:string):Promise<string>,
         openFolder(uri:string):Promise<void>,
         openFile(uri:string):Promise<void>,
         readFile(uri:string):Promise<ArrayBuffer>,
