@@ -12,7 +12,7 @@
 	<asset src="www/safMediastore.js" target="js/safMediastore.js"/>
 
 	<js-module name="safMediastore" src="www/safMediastore.js">
-		<clobbers target="safMediastore"/>
+		<clobbers target="cordova.plugins.safMediastore"/>
 	</js-module>
 
 	<platform name="android">
