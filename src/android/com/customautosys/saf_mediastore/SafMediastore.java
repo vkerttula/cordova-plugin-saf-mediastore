@@ -1,5 +1,6 @@
 package com.customautosys.saf_mediastore;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -42,9 +43,11 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 
 public class SafMediastore extends CordovaPlugin implements ValueCallback<String>{
-	protected HashMap<String,CallbackContext> callbacks=new HashMap<>();
+	protected HashMap<String,CallbackContext> callbackContexts=new HashMap<>();
+	protected HashMap<String,String> saveFileData=new HashMap<>();
 	protected CordovaInterface cordovaInterface;
 	protected CordovaWebView cordovaWebView;
+	public final String CALLBACK_ID=getClass().getName()+".getCallbackId";
 
 	public enum Action {
 		selectFolder,
@@ -53,7 +56,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		openFile,
 		readFile,
 		writeFile,
-		saveFile,
+		saveFile
 	}
 
 	@Override
@@ -88,8 +91,8 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			debugLog(e);
 		}
 		if(initialFolder!=null)intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,initialFolder);
-		intent.putExtra("SafMediastore.getCallbackId",callbackContext.getCallbackId());
-		callbacks.put(callbackContext.getCallbackId(),callbackContext);
+		intent.putExtra(CALLBACK_ID,callbackContext.getCallbackId());
+		callbackContexts.put(callbackContext.getCallbackId(),callbackContext);
 		cordovaInterface.startActivityForResult(this,intent,Action.selectFolder.ordinal());
 		return true;
 	}
@@ -169,13 +172,14 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			try{
 				subFolder=params.getString("subFolder");
 			}catch(Exception e){}
-			if(!subFolder.startsWith("/"))subFolder="/"+subFolder;
 			Uri uri=null;
 			if(folder!=null){
-				uri=DocumentFile.fromTreeUri(
+				DocumentFile documentFile=DocumentFile.fromTreeUri(
 					cordovaInterface.getContext(),
 					Uri.parse(folder)
-				).createDirectory(subFolder).createFile(
+				);
+				if(subFolder!=null)documentFile=documentFile.createDirectory(subFolder);
+				uri=documentFile.createFile(
 					mimeType,
 					filename
 				).getUri();
@@ -184,6 +188,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 				ContentValues contentValues=new ContentValues();
 				contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME,filename);
 				contentValues.put(MediaStore.MediaColumns.MIME_TYPE,mimeType);
+				if(!subFolder.startsWith("/"))subFolder="/"+subFolder;
 				contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH,Environment.DIRECTORY_DOWNLOADS+subFolder);
 				uri=contentResolver.insert(MediaStore.Files.getContentUri("external"),contentValues);
 			}
@@ -199,11 +204,69 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 	}
 
 	public boolean saveFile(JSONArray args,CallbackContext callbackContext){
-		return true;
+		try{
+			JSONObject params=args.getJSONObject(0);
+			saveFileData.put(callbackContext.getCallbackId(),params.getString("data"));
+			Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
+			intent.addCategory(Intent.CATEGORY_OPENABLE);
+			String filename=null;
+			try{
+				filename=params.getString("filename");
+			}catch(Exception e){
+				debugLog(e);
+			}
+			if(filename!=null){
+				intent.setType(MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(filename)));
+				intent.putExtra(Intent.EXTRA_TITLE,filename);
+			}
+			intent.putExtra(CALLBACK_ID,callbackContext.getCallbackId());
+			cordovaInterface.startActivityForResult(this,intent,Action.saveFile.ordinal());
+			return true;
+		}catch(Exception e){
+			callbackContext.error(debugLog(e));
+			return false;
+		}
 	}
 
 	@Override
-	public void onActivityResult(int requestCode,int resultCode,Intent data){
+	public void onActivityResult(int requestCode,int resultCode,Intent intent){
+		CallbackContext callbackContext=callbackContexts.remove(intent.getStringExtra(CALLBACK_ID));
+		if(callbackContext==null){
+			debugLog("callbackContext==null in onActivityResult");
+			return;
+		}
+		if(resultCode!=Activity.RESULT_OK){
+			callbackContext.error(debugLog(intent.getDataString()));
+			return;
+		}
+		if(requestCode<0||requestCode>=Action.values().length){
+			debugLog("Invalid request code: "+requestCode);
+			return;
+		}
+		switch(Action.values()[requestCode]){
+			case selectFolder:
+			case selectFile:
+				callbackContext.success(intent.getDataString());
+				break;
+			case openFolder:
+			case openFile:
+				break;
+			case saveFile:
+				String data=saveFileData.remove(callbackContext.getCallbackId());
+				if(data==null){
+					callbackContext.error(debugLog("No saveFileData in onActivityResult"));
+					break;
+				}
+				try(OutputStream outputStream=cordovaInterface.getContext().getContentResolver().openOutputStream(intent.getData())){
+					outputStream.write(Base64.decode(data,Base64.DEFAULT));
+					callbackContext.success(intent.getDataString());
+				}catch(Exception e){
+					callbackContext.error(debugLog(e));
+				}
+				break;
+			default:
+				callbackContext.error(debugLog("Invalid request code: "+Action.values()[requestCode].toString()));
+		}
 	}
 
 	public String debugLog(Throwable throwable){
@@ -233,6 +296,24 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			e.printStackTrace();
 			return "";
 		}
+	}
+
+	public String debugLog(String message){
+		Log.d(getClass().getName(),message);
+		cordovaWebView.getEngine().evaluateJavascript(
+			"console.log('" +message.replace(
+				"'",
+				"\\'"
+			).replace(
+				"\n",
+				"\\n"
+			).replace(
+				"\t",
+				"\\t"
+			)+"');",
+			this
+		);
+		return message;
 	}
 
 	@Override
