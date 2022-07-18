@@ -27,5 +27,6 @@
 	"bugs":{
 		"url":"https://github.com/customautosys/cordova-plugin-saf-mediastore/issues"
 	},
-	"homepage":"https://github.com/customautosys/cordova-plugin-saf-mediastore#readme"
+	"homepage":"https://github.com/customautosys/cordova-plugin-saf-mediastore#readme",
+	"types":"www/safMediastore.d.ts"
 }
