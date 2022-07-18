@@ -12,9 +12,16 @@ var actions=[
 
 function callPromise(name){
 	return function(params){
-		return new Promise(function(resolve,reject){
-			cordova.exec(resolve,reject,'SafMediastore',this,params);
-		});
+		return new Promise((
+			resolve,
+			reject
+		)=>cordova.exec(
+			resolve,
+			reject,
+			'SafMediastore',
+			this,
+			params
+		));
 	}.bind(name);
 }
 
