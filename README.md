@@ -32,7 +32,7 @@ readFile(uri:string):Promise<ArrayBuffer>
 Reads a file as a Blob.
 
 ```typescript
-writeFile({
+writeFile(params:{
 	data:ArrayBuffer,
 	filename:string,
 	folder?:string,
@@ -42,7 +42,7 @@ writeFile({
 Writes a file to a specific filename, with the folder and subfolder being optional. The subfolder will be created if it does not exist, and the default folder is the Downloads folder. Returns the content URI.
 
 ```typescript
-saveFile({
+saveFile(params:{
 	data:ArrayBuffer,
 	filename?:string,
 	folder?:string
