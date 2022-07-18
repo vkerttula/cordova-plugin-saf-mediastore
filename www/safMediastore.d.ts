@@ -18,5 +18,5 @@ interface CordovaPlugins{
 			filename?:string,
 			folder?:string
 		}):Promise<string>
-	};
+	}
 }
