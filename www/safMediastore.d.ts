@@ -1,4 +1,4 @@
-export default interface SafMediastore{
+interface SafMediastore{
 	selectFolder(uri?:string):Promise<string>,
 	selectFile(uri?:string):Promise<string>,
 	openFolder(uri:string):Promise<void>,
@@ -15,8 +15,8 @@ export default interface SafMediastore{
 		filename?:string,
 		folder?:string
 	}):Promise<string>
-};
+}
 
 interface CordovaPlugins{
 	safMediastore:SafMediastore
-};
+}
