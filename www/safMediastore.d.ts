@@ -1,5 +1,3 @@
-export {};
-
 interface CordovaPlugins{
 	safMediastore:{
 		selectFolder(uri?:string):Promise<string>,
