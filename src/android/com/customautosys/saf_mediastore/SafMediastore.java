@@ -171,7 +171,9 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			String subFolder="";
 			try{
 				subFolder=params.getString("subFolder");
-			}catch(Exception e){}
+			}catch(Exception e){
+				debugLog(e);
+			}
 			Uri uri=null;
 			if(folder!=null){
 				DocumentFile documentFile=DocumentFile.fromTreeUri(
