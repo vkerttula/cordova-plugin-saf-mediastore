@@ -1,6 +1,6 @@
 /*global cordova, module*/
 
-var actions=[
+let actions=[
 	'selectFolder',
 	'selectFile',
 	'openFolder',
@@ -19,15 +19,15 @@ function callPromise(name){
 			resolve,
 			reject,
 			'SafMediastore',
-			this,
+			this.name,
 			params
 		));
-	}.bind(name);
+	}.bind({name});
 }
 
-var exports={};
+let exports={};
 
-for(var i=0;i<actions.length;++i){
+for(let i=0;i<actions.length;++i){
 	exports[actions[i]]=callPromise(actions[i]);
 }
 
