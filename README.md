@@ -33,22 +33,22 @@ Reads a file as a Blob.
 
 ```typescript
 writeFile(params:{
-	data:ArrayBuffer,
+	data:string,
 	filename:string,
 	folder?:string,
 	subfolder?:string
 }):Promise<string>
 ```
-Writes a file to a specific filename, with the folder and subfolder being optional. The subfolder will be created if it does not exist, and the default folder is the Downloads folder. Returns the content URI.
+Writes a file to a specific filename, with the folder and subfolder being optional. The subfolder will be created if it does not exist, and the default folder is the Downloads folder. Returns the content URI. ```data``` is a Base 64 string.
 
 ```typescript
 saveFile(params:{
-	data:ArrayBuffer,
+	data:string,
 	filename?:string,
 	folder?:string
 }):Promise<string>
 ```
-Launches a file picker Intent to save a file, with the preferred filename and folder being optional. Returns the content URI.
+Launches a file picker Intent to save a file, with the preferred filename and folder being optional. Returns the content URI. ```data``` is a Base 64 string.
 
 To call methods:
 ```

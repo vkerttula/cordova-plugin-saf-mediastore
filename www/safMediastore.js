@@ -2,7 +2,7 @@
 
 module.exports=(function(){
 	function callPromise(name){
-		return function(params){
+		return function(...params){
 			return new Promise((
 				resolve,
 				reject

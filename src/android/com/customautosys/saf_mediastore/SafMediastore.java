@@ -43,7 +43,7 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 
 public class SafMediastore extends CordovaPlugin implements ValueCallback<String>{
-	protected HashMap<String,CallbackContext> callbackContexts=new HashMap<>();
+	protected CallbackContext callbackContext;
 	protected HashMap<String,String> saveFileData=new HashMap<>();
 	protected CordovaInterface cordovaInterface;
 	protected CordovaWebView cordovaWebView;
@@ -92,7 +92,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		}
 		if(initialFolder!=null)intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,initialFolder);
 		intent.putExtra(CALLBACK_ID,callbackContext.getCallbackId());
-		callbackContexts.put(callbackContext.getCallbackId(),callbackContext);
+		this.callbackContext=callbackContext;
 		cordovaInterface.startActivityForResult(this,intent,Action.selectFolder.ordinal());
 		return true;
 	}
@@ -197,7 +197,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			try(OutputStream outputStream=cordovaInterface.getContext().getContentResolver().openOutputStream(uri)){
 				outputStream.write(Base64.decode(params.getString("data"),Base64.DEFAULT));
 			}
-			callbackContext.success();
+			callbackContext.success(uri.toString());
 			return true;
 		}catch(Exception e){
 			callbackContext.error(debugLog(e));
@@ -232,9 +232,8 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 
 	@Override
 	public void onActivityResult(int requestCode,int resultCode,Intent intent){
-		CallbackContext callbackContext=callbackContexts.remove(intent.getStringExtra(CALLBACK_ID));
 		if(callbackContext==null){
-			debugLog("callbackContext==null in onActivityResult");
+			callbackContext.error(debugLog("callbackContext==null in onActivityResult"));
 			return;
 		}
 		if(resultCode!=Activity.RESULT_OK){
@@ -289,7 +288,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 					"\t",
 					"\\t"
 				)+"');",
-		this
+				this
 			);
 			printWriter.close();
 			stringWriter.close();
