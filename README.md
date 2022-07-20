@@ -29,7 +29,7 @@ Launches an Intent to open a file.
 ```typescript
 readFile(uri:string):Promise<ArrayBuffer>
 ```
-Reads a file as a Blob.
+Reads a file as an ArrayBuffer.
 
 ```typescript
 writeFile(params:{
@@ -39,7 +39,7 @@ writeFile(params:{
 	subfolder?:string
 }):Promise<string>
 ```
-Writes a file to a specific filename, with the folder and subfolder being optional. The subfolder will be created if it does not exist, and the default folder is the Downloads folder. Returns the content URI. ```data``` is a Base 64 string.
+Writes a file to a specific filename, with the folder and subfolder being optional. The subfolder will be created if it does not exist, and the default folder is the Downloads folder (saved via Mediastore). Returns the content URI. ```data``` is a Base 64 string.
 
 ```typescript
 saveFile(params:{
@@ -52,5 +52,5 @@ Launches a file picker Intent to save a file, with the preferred filename and fo
 
 To call methods:
 ```
-window.safMediastore.<function>(params); //returns a Promise
-await window.safMediastore.<function>(params); //in an async function
+cordova.plugins.safMediastore.<function>(params); //returns a Promise
+await cordova.plugins.safMediastore.<function>(params); //in an async function

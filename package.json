@@ -23,7 +23,7 @@
 		"cordova-android"
 	],
 	"author":"Wilson Foo Yu Kang <wilson.foo@customautosys.com>",
-	"license":"SEE LICENSE IN https://customautosys.com/licence.html",
+	"license":"(CC-BY-NC-SA-4.0 OR UNLICENSED)",
 	"bugs":{
 		"url":"https://github.com/customautosys/cordova-plugin-saf-mediastore/issues"
 	},
