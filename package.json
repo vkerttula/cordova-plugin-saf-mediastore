@@ -1,6 +1,6 @@
 {
 	"name":"cordova-plugin-saf-mediastore",
-	"version":"1.0.1",
+	"version":"1.0.2",
 	"description":"Cordova Plugin to read and save files using the Storage Access Framework and Mediastore on Android only.",
 	"main":"index.js",
 	"scripts":{
@@ -23,7 +23,7 @@
 		"cordova-android"
 	],
 	"author":"Wilson Foo Yu Kang <wilson.foo@customautosys.com>",
-	"license":"(CC-BY-NC-SA-4.0 OR UNLICENSED)",
+	"license":"(NPOSL-3.0 OR UNLICENSED)",
 	"bugs":{
 		"url":"https://github.com/customautosys/cordova-plugin-saf-mediastore/issues"
 	},
