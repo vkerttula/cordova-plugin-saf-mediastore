@@ -4,15 +4,11 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.os.CancellationSignal;
 import android.os.Environment;
 import android.os.FileUtils;
-import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
-import android.provider.DocumentsProvider;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
@@ -26,17 +22,12 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
-import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -232,6 +223,13 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 				intent.setType(MimeTypeMap.getSingleton().getMimeTypeFromExtension(filename.substring(filename.lastIndexOf('.')+1)));
 				intent.putExtra(Intent.EXTRA_TITLE,filename);
 			}
+			String folder=null;
+			try{
+				folder=params.getString("folder");
+			}catch(Exception e){
+				debugLog(e);
+			}
+			if(folder!=null)intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,folder);
 			this.callbackContext=callbackContext;
 			cordovaInterface.startActivityForResult(this,intent,Action.saveFile.ordinal());
 			return true;
