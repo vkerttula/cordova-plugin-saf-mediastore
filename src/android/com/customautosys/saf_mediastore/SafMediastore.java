@@ -52,7 +52,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 	}
 
 	@Override
-	public void initialize(CordovaInterface cordovaInterface,CordovaWebView webView){
+	public void initialize(CordovaInterface cordovaInterface,CordovaWebView cordovaWebView){
 		this.cordovaInterface=cordovaInterface;
 		this.cordovaWebView=cordovaWebView;
 	}
@@ -245,10 +245,6 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			debugLog("callbackContext==null in onActivityResult");
 			return;
 		}
-		if(resultCode!=Activity.RESULT_OK){
-			callbackContext.error(debugLog(intent.getDataString()));
-			return;
-		}
 		if(requestCode<0||requestCode>=Action.values().length){
 			callbackContext.error(debugLog("Invalid request code: "+requestCode));
 			return;
@@ -256,6 +252,10 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		switch(Action.values()[requestCode]){
 			case selectFolder:
 			case selectFile:
+				if(resultCode!=Activity.RESULT_OK){
+					callbackContext.error(debugLog("Cancelled"));
+					return;
+				}
 				callbackContext.success(intent.getDataString());
 				break;
 			case openFolder:
@@ -263,6 +263,10 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 				callbackContext.success();
 				break;
 			case saveFile:
+				if(resultCode!=Activity.RESULT_OK){
+					callbackContext.error(debugLog("Cancelled"));
+					return;
+				}
 				String data=saveFileData.remove(callbackContext.getCallbackId());
 				if(data==null){
 					callbackContext.error(debugLog("No saveFileData in onActivityResult"));
