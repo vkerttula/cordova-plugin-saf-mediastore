@@ -121,7 +121,6 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			Intent intent=new Intent(Intent.ACTION_VIEW);
 			intent.setDataAndType(Uri.parse(args.getString(0)),DocumentsContract.Document.MIME_TYPE_DIR);
 			cordovaInterface.startActivityForResult(this,Intent.createChooser(intent,"Open folder"),Action.openFolder.ordinal());
-			callbackContext.success();
 			return true;
 		}catch(Exception e){
 			callbackContext.error(debugLog(e));
@@ -135,7 +134,6 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			Intent intent=new Intent(Intent.ACTION_VIEW);
 			intent.setDataAndType(Uri.parse(uri),MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(uri)));
 			cordovaInterface.startActivityForResult(this,intent,Action.openFile.ordinal());
-			callbackContext.success();
 			return true;
 		}catch(Exception e){
 			callbackContext.error(debugLog(e));
@@ -175,12 +173,21 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 				debugLog(e);
 			}
 			Uri uri=null;
-			if(folder!=null){
+			if(folder!=null&&!folder.trim().equals("")){
 				DocumentFile documentFile=DocumentFile.fromTreeUri(
 					cordovaInterface.getContext(),
 					Uri.parse(folder)
 				);
-				if(subFolder!=null)documentFile=documentFile.createDirectory(subFolder);
+				if(subFolder!=null){
+					DocumentFile subFolderDocumentFile=null;
+					for(DocumentFile subFile:documentFile.listFiles()){
+						if(subFile.isDirectory()&&subFile.getName().equals(subFolder)){
+							subFolderDocumentFile=subFile;
+							break;
+						}
+					}
+					documentFile=subFolderDocumentFile!=null?subFolderDocumentFile:documentFile.createDirectory(subFolder);
+				}
 				uri=documentFile.createFile(
 					mimeType,
 					filename
@@ -241,16 +248,15 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			return;
 		}
 		if(requestCode<0||requestCode>=Action.values().length){
-			debugLog("Invalid request code: "+requestCode);
+			callbackContext.error(debugLog("Invalid request code: "+requestCode));
 			return;
 		}
 		switch(Action.values()[requestCode]){
 			case selectFolder:
 			case selectFile:
-				callbackContext.success(intent.getDataString());
-				break;
 			case openFolder:
 			case openFile:
+				callbackContext.success(intent.getDataString());
 				break;
 			case saveFile:
 				String data=saveFileData.remove(callbackContext.getCallbackId());
