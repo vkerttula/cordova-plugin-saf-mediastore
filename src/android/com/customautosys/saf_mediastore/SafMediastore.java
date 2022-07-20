@@ -256,9 +256,11 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		switch(Action.values()[requestCode]){
 			case selectFolder:
 			case selectFile:
+				callbackContext.success(intent.getDataString());
+				break;
 			case openFolder:
 			case openFile:
-				callbackContext.success(intent.getDataString());
+				callbackContext.success();
 				break;
 			case saveFile:
 				String data=saveFileData.remove(callbackContext.getCallbackId());
