@@ -295,7 +295,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 					cordovaInterface.getContext(),
 					Uri.parse(folder)
 			);
-			String subFolder=params.getString("subfolder");
+			String subFolder=params.getString("subFolder");
 			if(subFolder!=null){
 				String subFolders[]=subFolder.split("/");
 				for(int i=0;i<subFolders.length;++i){

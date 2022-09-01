@@ -36,7 +36,7 @@ writeFile(params:{
 	data:string,
 	filename:string,
 	folder?:string,
-	subfolder?:string
+	subFolder?:string
 }):Promise<string>
 ```
 Writes a file to a specific filename, with the folder and subfolder being optional. The subfolder will be created if it does not exist, and the default folder is the Downloads folder (saved via Mediastore). Returns the content URI. ```data``` is a Base 64 string.
@@ -71,7 +71,7 @@ Returns the filename of the corresponding content URI.
 ```typescript
 getUri(params:{
     folder:string,
-    subfolder?:string,
+    subFolder?:string,
     filename?:string,
 }):Promise<string>
 ```

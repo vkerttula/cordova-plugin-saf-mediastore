@@ -23,7 +23,7 @@ interface SafMediastore{
 	getFileName(uri:string):Promise<string>,
 	getUri(params:{
 		folder:string,
-		subfolder?:string,
+		subFolder?:string,
 		filename?:string,
 	}):Promise<string>
 }
