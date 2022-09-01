@@ -42,6 +42,14 @@ writeFile(params:{
 Writes a file to a specific filename, with the folder and subfolder being optional. The subfolder will be created if it does not exist, and the default folder is the Downloads folder (saved via Mediastore). Returns the content URI. ```data``` is a Base 64 string.
 
 ```typescript
+overwriteFile(params:{
+    uri:string,
+    data:string
+}):Promise<string>
+```
+Overwrites a file at a specific content URI. Returns the content URI.
+
+```typescript
 saveFile(params:{
 	data:string,
 	filename?:string,
@@ -50,7 +58,27 @@ saveFile(params:{
 ```
 Launches a file picker Intent to save a file, with the preferred filename and folder being optional. Returns the content URI. ```data``` is a Base 64 string.
 
-To call methods:
+```typescript
+deleteFile(uri:string):Promise<number>
 ```
+Deletes a file at a specific content URI. Returns the number of files deleted.
+
+```typescript
+getFileName(uri:string):Promise<string>
+```
+Returns the filename of the corresponding content URI.
+
+```typescript
+getUri(params:{
+    folder:string,
+    subfolder?:string,
+    filename?:string,
+}):Promise<string>
+```
+Returns the content URI of the file in the corresponding folder and subfolder.
+
+To call methods:
+```typescript
 cordova.plugins.safMediastore.<function>(params); //returns a Promise
 await cordova.plugins.safMediastore.<function>(params); //in an async function
+```

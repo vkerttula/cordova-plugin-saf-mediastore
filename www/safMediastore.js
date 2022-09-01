@@ -25,7 +25,11 @@ module.exports=(function(){
 		'openFile',
 		'readFile',
 		'writeFile',
-		'saveFile'
+		'overwriteFile',
+		'saveFile',
+		'deleteFile',
+		'getFileName',
+		'getUri'
 	].forEach(action=>exports[action]=callPromise(action));
 
 	return exports;

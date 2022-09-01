@@ -10,10 +10,21 @@ interface SafMediastore{
 		folder?:string,
 		subFolder?:string
 	}):Promise<string>,
+	overwriteFile(params:{
+		uri:string,
+		data:string
+	}):Promise<string>,
 	saveFile(params:{
 		data:string,
 		filename?:string,
 		folder?:string
+	}):Promise<string>,
+	deleteFile(uri:string):Promise<number>,
+	getFileName(uri:string):Promise<string>,
+	getUri(params:{
+		folder:string,
+		subfolder?:string,
+		filename?:string,
 	}):Promise<string>
 }
 

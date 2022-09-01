@@ -174,19 +174,29 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 					Uri.parse(folder)
 				);
 				if(subFolder!=null){
-					DocumentFile subFolderDocumentFile=null;
-					for(DocumentFile subFile:documentFile.listFiles()){
-						if(subFile.isDirectory()&&subFile.getName().equals(subFolder)){
-							subFolderDocumentFile=subFile;
-							break;
+					String subFolders[]=subFolder.split("/");
+					for(int i=0;i<subFolders.length;++i){
+						DocumentFile subFolderDocumentFile=null;
+						for(DocumentFile subFile:documentFile.listFiles()){
+							if(subFile.isDirectory()&&subFile.getName().equals(subFolder)){
+								subFolderDocumentFile=subFile;
+								break;
+							}
 						}
+						documentFile=subFolderDocumentFile!=null?subFolderDocumentFile:documentFile.createDirectory(subFolders[i]);
 					}
-					documentFile=subFolderDocumentFile!=null?subFolderDocumentFile:documentFile.createDirectory(subFolder);
 				}
-				uri=documentFile.createFile(
+				DocumentFile file=null;
+				for(DocumentFile subFile:documentFile.listFiles()){
+					if(!subFile.isDirectory()&&subFile.getName().equals(filename)){
+						file=subFile;
+						break;
+					}
+				}
+				uri=(file!=null?file:documentFile.createFile(
 					mimeType,
 					filename
-				).getUri();
+				)).getUri();
 			}else{
 				ContentResolver contentResolver=cordovaInterface.getContext().getContentResolver();
 				ContentValues contentValues=new ContentValues();
@@ -196,6 +206,21 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 				contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH,Environment.DIRECTORY_DOWNLOADS+subFolder);
 				uri=contentResolver.insert(MediaStore.Files.getContentUri("external"),contentValues);
 			}
+			try(OutputStream outputStream=cordovaInterface.getContext().getContentResolver().openOutputStream(uri)){
+				outputStream.write(Base64.decode(params.getString("data"),Base64.DEFAULT));
+			}
+			callbackContext.success(uri.toString());
+			return true;
+		}catch(Exception e){
+			callbackContext.error(debugLog(e));
+			return false;
+		}
+	}
+
+	public boolean overwriteFile(JSONArray args,CallbackContext callbackContext){
+		try{
+			JSONObject params=args.getJSONObject(0);
+			Uri uri=Uri.parse(params.getString("uri"));
 			try(OutputStream outputStream=cordovaInterface.getContext().getContentResolver().openOutputStream(uri)){
 				outputStream.write(Base64.decode(params.getString("data"),Base64.DEFAULT));
 			}
@@ -232,6 +257,73 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			if(folder!=null)intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,folder);
 			this.callbackContext=callbackContext;
 			cordovaInterface.startActivityForResult(this,intent,Action.saveFile.ordinal());
+			return true;
+		}catch(Exception e){
+			callbackContext.error(debugLog(e));
+			return false;
+		}
+	}
+
+	public boolean deleteFile(JSONArray args,CallbackContext callbackContext){
+		try{
+			callbackContext.success(cordovaInterface.getContext().getContentResolver().delete(Uri.parse(args.getString(0)),null);
+			return true;
+		}catch(Exception e){
+			callbackContext.error(debugLog(e));
+			return false;
+		}
+	}
+
+	public boolean getFileName(JSONArray args,CallbackContext callbackContext){
+		try{
+			callbackContext.success(DocumentFile.fromTreeUri(
+					cordovaInterface.getContext(),
+					Uri.parse(args.getString(0))
+			).getName());
+			return true;
+		}catch(Exception e){
+			callbackContext.error(debugLog(e));
+			return false;
+		}
+	}
+
+	public boolean getUri(JSONArray args,CallbackContext callbackContext){
+		try{
+			JSONObject params=args.getJSONObject(0);
+			String folder=params.getString("folder");
+			DocumentFile documentFile=DocumentFile.fromTreeUri(
+					cordovaInterface.getContext(),
+					Uri.parse(folder)
+			);
+			String subFolder=params.getString("subfolder");
+			if(subFolder!=null){
+				String subFolders[]=subFolder.split("/");
+				for(int i=0;i<subFolders.length;++i){
+					DocumentFile subFolderDocumentFile=null;
+					for(DocumentFile subFile:documentFile.listFiles()){
+						if(subFile.isDirectory()&&subFile.getName().equals(subFolder)){
+							subFolderDocumentFile=subFile;
+							break;
+						}
+					}
+					if(subFolderDocumentFile==null)throw new Exception("Subfolder not found in "+folder+": "+subFolder);
+					documentFile=subFolderDocumentFile;
+				}
+			}
+			String filename=params.getString("filename");
+			if(filename==null){
+				callbackContext.success(documentFile.getUri().toString());
+				return true;
+			}
+			DocumentFile file=null;
+			for(DocumentFile subFile:documentFile.listFiles()){
+				if(!subFile.isDirectory()&&subFile.getName().equals(filename)){
+					file=subFile;
+					break;
+				}
+			}
+			if(file==null)throw new Exception("File not found in "+subFolder+" of "+folder+": "+filename);
+			callbackContext.success(file.getUri().toString());
 			return true;
 		}catch(Exception e){
 			callbackContext.error(debugLog(e));
