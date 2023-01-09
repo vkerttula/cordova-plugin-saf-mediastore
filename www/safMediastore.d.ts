@@ -24,7 +24,7 @@ interface SafMediastore {
     filename?: string;
   }): Promise<string>;
   existsFile(filename: string): Promise<string>;
-  getDataForOpenFile(filename: string): Promise<{
+  getDataForOpenFile(uri: string): Promise<{
     uri: string;
     mimeType: string;
     filename: string;
