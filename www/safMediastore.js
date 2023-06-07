@@ -25,6 +25,7 @@ module.exports = (function () {
     'getUri',
     'existsFile',
     'getDataForOpenFile',
+    'touchFile',
   ].forEach((action) => (exports[action] = callPromise(action)));
 
   return exports;

@@ -254,6 +254,31 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		}
 	}
 
+	public boolean touchFile(JSONArray args, CallbackContext callbackContext) {
+		try {
+			JSONObject params = args.getJSONObject(0);
+			Uri uri = Uri.parse(params.getString("uri"));
+			try (
+					InputStream inputStream = cordovaInterface.getContext().getContentResolver()
+							.openInputStream(uri);
+					ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+				FileUtils.copy(inputStream, byteArrayOutputStream);
+				try (OutputStream outputStream = cordovaInterface.getContext().getContentResolver().openOutputStream(uri)) {
+					outputStream.write(byteArrayOutputStream.toByteArray());
+				}
+				callbackContext.success(uri.toString());
+				return true;
+			} catch (Exception e) {
+				callbackContext.error(debugLog(e));
+				return false;
+			}
+
+		} catch (Exception e) {
+			callbackContext.error(debugLog(e));
+			return false;
+		}
+	}
+
 	public boolean saveFile(JSONArray args, CallbackContext callbackContext) {
 		try {
 			JSONObject params = args.getJSONObject(0);
