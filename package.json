@@ -1,6 +1,6 @@
 {
   "name": "@makiwin/cordova-plugin-saf-mediastore",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Cordova Plugin to read and save files using the Storage Access Framework and Mediastore on Android only.",
   "main": "index.js",
   "scripts": {
