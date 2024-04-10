@@ -134,10 +134,9 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		try {
 			String uri = args.getString(0);
 			Intent intent = new Intent(Intent.ACTION_VIEW);
-			String[] resourcesUri = this.getRealPathFromURI(Uri.parse(uri));
+			String[] info = this.getInfoFromUri(Uri.parse(uri));
 			intent.setDataAndType(Uri.parse(uri),
-					MimeTypeMap.getSingleton()
-							.getMimeTypeFromExtension(resourcesUri[0].substring(resourcesUri[0].lastIndexOf('.') + 1)));
+					info[0]);
 			intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			this.callbackContext = callbackContext;
@@ -437,13 +436,15 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			if (!args.isNull(0)) {
 				uri = args.getString(0);
 			}
-			String[] realUri = this.getRealPathFromURI(Uri.parse(uri));
+			String[] info = this.getInfoFromUri(Uri.parse(uri));
+			// ContentResolver contentResolver = cordovaInterface.getContext().getContentResolver();
 			JSONObject response = new JSONObject()
-					.put("uri", realUri[0])
 					.put("mimeType",
-							MimeTypeMap.getSingleton()
-									.getMimeTypeFromExtension(realUri[0].substring(uri.lastIndexOf('.') + 1)))
-					.put("filename", realUri[1]);
+							info[0]
+							// MimeTypeMap.getSingleton()
+							// 		.getMimeTypeFromExtension(realUri[0].substring(uri.lastIndexOf('.') + 1))
+							)
+					.put("filename", info[1]);
 			callbackContext.success(response);
 			return true;
 		} catch (Exception e) {
@@ -539,17 +540,16 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 						+ "');",
 				this);
 		return message;
-	}
+	}	
 
-	public String[] getRealPathFromURI(Uri contentUri) {
+	public String[] getInfoFromUri(Uri contentUri) {
 		Cursor cursor = null;
 		try {
-			cursor = cordovaInterface.getContext().getContentResolver().query(contentUri, null, null, null, null);
-			int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+			cursor = cordovaInterface.getContext().getContentResolver().query(contentUri, null, null, null, null);			
 			cursor.moveToFirst();
 			String[] response = {
-					cursor.getString(column_index),
-					cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+					cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE)),
+					cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
 			};
 			return response;
 		} finally {
