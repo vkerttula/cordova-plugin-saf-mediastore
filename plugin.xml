@@ -27,5 +27,7 @@
 		</config-file>
 
 		<source-file src="src/android/com/makiwin/saf_mediastore/SafMediastore.java" target-dir="src/com/makiwin/saf_mediastore/"/>
+
+		<framework src="androidx.documentfile:documentfile:1.0.1" />
 	</platform>
 </plugin>
