@@ -472,7 +472,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 				callbackContext.success(intent.getDataString());
 				break;
 			case openFolder:
-				Uri folderUri = data.getData();
+				Uri folderUri = intent.getData();
 				if (folderUri != null) {
 					// Get the folder contents
 					Cursor cursor = cordovaInterface.getActivity().getContentResolver().query(folderUri, null, null, null, null);
