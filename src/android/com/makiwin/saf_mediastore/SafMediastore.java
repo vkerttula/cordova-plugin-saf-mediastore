@@ -483,7 +483,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 				Uri folderUri = intent.getData();
 				if (folderUri != null) {
 					try {
-						JSONArray folderContents = getFolderContents(folderUri);
+						JSONObject folderContents = getFolderContents(folderUri);
 						
 						callbackContext.success(folderContents);
 					} catch (Exception e) {
