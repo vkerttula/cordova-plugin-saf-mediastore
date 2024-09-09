@@ -38,7 +38,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Queue;
+import java.util.List;
 
 public class SafMediastore extends CordovaPlugin implements ValueCallback<String> {
 	protected CallbackContext callbackContext;
@@ -579,30 +579,30 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 	}
 
 	private JSONArray getFolderContents(Uri rootFolderUri) throws JSONException {
-		JSONArray folderContents = new JSONArray();
-		Queue<Uri> foldersToProcess = new LinkedList<>();
-		foldersToProcess.add(rootFolderUri);
-
-		while (!foldersToProcess.isEmpty()) {
-			Uri folderUri = foldersToProcess.poll();
-			DocumentFile documentFile = DocumentFile.fromTreeUri(cordovaInterface.getContext(), folderUri);
-
-			if (documentFile != null && documentFile.isDirectory()) {
-				for (DocumentFile file : documentFile.listFiles()) {
-					JSONObject fileData = new JSONObject();
-					fileData.put("name", file.getName());
-					fileData.put("mimeType", file.getType() != null ? file.getType() : "unknown");
-
-					if (file.isDirectory()) {
-						foldersToProcess.add(file.getUri());
-					}
-
-					folderContents.put(fileData);
-				}
+	    JSONArray folderContents = new JSONArray();
+	    List<Uri> foldersToProcess = new ArrayList<>();
+	    foldersToProcess.add(rootFolderUri);
+	
+	    while (!foldersToProcess.isEmpty()) {
+		Uri folderUri = foldersToProcess.remove(0);
+		DocumentFile documentFile = DocumentFile.fromTreeUri(cordovaInterface.getContext(), folderUri);
+	
+		if (documentFile != null && documentFile.isDirectory()) {
+		    for (DocumentFile file : documentFile.listFiles()) {
+			JSONObject fileData = new JSONObject();
+			fileData.put("name", file.getName());
+			fileData.put("mimeType", file.getType() != null ? file.getType() : "unknown");
+	
+			if (file.isDirectory()) {
+			    foldersToProcess.add(file.getUri());
 			}
+	
+			folderContents.put(fileData);
+		    }
 		}
-		
-		return folderContents;
+	    }
+	    
+	    return folderContents;
 	}
 
 	@Override
