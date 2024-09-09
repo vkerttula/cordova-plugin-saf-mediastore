@@ -118,17 +118,17 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 
 	public boolean openFolder(JSONArray args, CallbackContext callbackContext) {
 		try {
-			Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-			intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+			Intent intent = new Intent(Intent.ACTION_VIEW);
+			intent.setDataAndType(Uri.parse(args.getString(0)), DocumentsContract.Document.MIME_TYPE_DIR);
 			this.callbackContext = callbackContext;
-			cordovaInterface.startActivityForResult(this, intent, Action.openFolder.ordinal());
+			cordovaInterface.startActivityForResult(this, Intent.createChooser(intent, "Open folder"),
+					Action.openFolder.ordinal());
 			return true;
 		} catch (Exception e) {
 			callbackContext.error(debugLog(e));
 			return false;
 		}
 	}
-
 
 	public boolean openFile(JSONArray args, CallbackContext callbackContext) {
 		try {
@@ -453,6 +453,73 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		}
 	}
 
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+		if (callbackContext == null) {
+			debugLog("callbackContext==null in onActivityResult");
+			return;
+		}
+		if (requestCode < 0 || requestCode >= Action.values().length) {
+			callbackContext.error(debugLog("Invalid request code: " + requestCode));
+			return;
+		}
+		switch (Action.values()[requestCode]) {
+			case selectFolder:
+			case selectFile:
+				if (resultCode != Activity.RESULT_OK) {
+					callbackContext.error(debugLog("Cancelled"));
+					return;
+				}
+				callbackContext.success(intent.getDataString());
+				break;
+			case openFolder:
+				Uri folderUri = data.getData();
+				if (folderUri != null) {
+					// Get the folder contents
+					Cursor cursor = cordovaInterface.getActivity().getContentResolver().query(folderUri, null, null, null, null);
+					if (cursor != null) {
+						try {
+							JSONArray folderContents = new JSONArray();
+							while (cursor.moveToNext()) {
+								String fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+								folderContents.put(fileName);
+							}
+							callbackContext.success(folderContents);
+						} finally {
+							cursor.close();
+						}
+					} else {
+						callbackContext.error("Failed to get folder contents");
+					}
+				} else {
+					callbackContext.error("No folder selected");
+			}
+			case openFile:
+				callbackContext.success();
+				break;
+			case saveFile:
+				if (resultCode != Activity.RESULT_OK) {
+					callbackContext.error(debugLog("Cancelled"));
+					return;
+				}
+				String data = saveFileData.remove(callbackContext.getCallbackId());
+				if (data == null) {
+					callbackContext.error(debugLog("No saveFileData in onActivityResult"));
+					break;
+				}
+				try (OutputStream outputStream = cordovaInterface.getContext().getContentResolver()
+						.openOutputStream(intent.getData())) {
+					outputStream.write(Base64.decode(data, Base64.DEFAULT));
+					callbackContext.success(intent.getDataString());
+				} catch (Exception e) {
+					callbackContext.error(debugLog(e));
+				}
+				break;
+			default:
+				callbackContext.error(debugLog("Invalid request code: " + Action.values()[requestCode].toString()));
+		}
+	}
+
 	public String debugLog(Throwable throwable) {
 		try {
 			StringWriter stringWriter = new StringWriter();
@@ -516,86 +583,4 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 	@Override
 	public void onReceiveValue(String value) {
 	}
-
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == Action.openFolder.ordinal()) {
-			handleOpenFolderResult(resultCode, data);
-		} else if (requestCode == Action.selectFile.ordinal()) {
-			// handleSelectFileResult(requestCode, resultCode, data);
-		} else if (requestCode < 0 || requestCode >= Action.values().length) {
-			callbackContext.error(debugLog("Invalid request code: " + requestCode));
-			return;
-		}
-	}
-
-	private void handleOpenFolderResult(int resultCode, Intent data) {
-		if (resultCode == Activity.RESULT_OK) {
-			Uri folderUri = data.getData();
-			if (folderUri != null) {
-				// Get the folder contents
-				Cursor cursor = cordovaInterface.getActivity().getContentResolver().query(folderUri, null, null, null, null);
-				if (cursor != null) {
-					try {
-						JSONArray folderContents = new JSONArray();
-						while (cursor.moveToNext()) {
-							String fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-							folderContents.put(fileName);
-						}
-						callbackContext.success(folderContents);
-					} finally {
-						cursor.close();
-					}
-				} else {
-					callbackContext.error("Failed to get folder contents");
-				}
-			} else {
-				callbackContext.error("No folder selected");
-			}
-		} else {
-			callbackContext.error("Folder selection cancelled");
-		}
-	}
-
-	// private void handleSelectFileResult(int requestCode, int resultCode, Intent data) {
-	// 	if (callbackContext == null) {
-	// 		debugLog("callbackContext==null in onActivityResult");
-	// 		return;
-	// 	}
-
-	// 	switch (Action.values()[requestCode]) {
-	// 		case selectFolder:
-	// 		case selectFile:
-	// 			if (resultCode != Activity.RESULT_OK) {
-	// 				callbackContext.error(debugLog("Cancelled"));
-	// 				return;
-	// 			}
-	// 			callbackContext.success(intent.getDataString());
-	// 			break;
-	// 		case openFolder:
-	// 		case openFile:
-	// 			callbackContext.success();
-	// 			break;
-	// 		case saveFile:
-	// 			if (resultCode != Activity.RESULT_OK) {
-	// 				callbackContext.error(debugLog("Cancelled"));
-	// 				return;
-	// 			}
-	// 			String data = saveFileData.remove(callbackContext.getCallbackId());
-	// 			if (data == null) {
-	// 				callbackContext.error(debugLog("No saveFileData in onActivityResult"));
-	// 				break;
-	// 			}
-	// 			try (OutputStream outputStream = cordovaInterface.getContext().getContentResolver()
-	// 					.openOutputStream(intent.getData())) {
-	// 				outputStream.write(Base64.decode(data, Base64.DEFAULT));
-	// 				callbackContext.success(intent.getDataString());
-	// 			} catch (Exception e) {
-	// 				callbackContext.error(debugLog(e));
-	// 			}
-	// 			break;
-	// 		default:
-	// 			callbackContext.error(debugLog("Invalid request code: " + Action.values()[requestCode].toString()));
-	// 	}	
-	// }
 }
