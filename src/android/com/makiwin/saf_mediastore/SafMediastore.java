@@ -480,10 +480,10 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 				Uri folderUri = intent.getData();
 				if (folderUri != null) {
 					try {
-						Uri docUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, DocumentsContract.getTreeDocumentId(folderUri));
+                    	Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(folderUri, DocumentsContract.getTreeDocumentId(folderUri));
 
 						Cursor cursor = cordovaInterface.getContext().getContentResolver()
-								.query(docUri, null, null, null, null);
+								.query(childrenUri, null, null, null, null);
 						
 						if (cursor != null) {
 							JSONArray folderContents = new JSONArray();
