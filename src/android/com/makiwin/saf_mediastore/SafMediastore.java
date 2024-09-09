@@ -118,11 +118,10 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 
 	public boolean openFolder(JSONArray args, CallbackContext callbackContext) {
 		try {
-			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setDataAndType(Uri.parse(args.getString(0)), DocumentsContract.Document.MIME_TYPE_DIR);
+			Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+			intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 			this.callbackContext = callbackContext;
-			cordovaInterface.startActivityForResult(this, Intent.createChooser(intent, "Open folder"),
-					Action.openFolder.ordinal());
+			cordovaInterface.startActivityForResult(this, intent, Action.openFolder.ordinal());
 			return true;
 		} catch (Exception e) {
 			callbackContext.error(debugLog(e));
