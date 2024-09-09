@@ -38,6 +38,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Queue;
 
 public class SafMediastore extends CordovaPlugin implements ValueCallback<String> {
 	protected CallbackContext callbackContext;
