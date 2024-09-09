@@ -557,45 +557,45 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		}
 	}
 
-	private void handleSelectFileResult(int requestCode, int resultCode, Intent data) {
-		if (callbackContext == null) {
-			debugLog("callbackContext==null in onActivityResult");
-			return;
-		}
+	// private void handleSelectFileResult(int requestCode, int resultCode, Intent data) {
+	// 	if (callbackContext == null) {
+	// 		debugLog("callbackContext==null in onActivityResult");
+	// 		return;
+	// 	}
 
-		switch (Action.values()[requestCode]) {
-			case selectFolder:
-			case selectFile:
-				if (resultCode != Activity.RESULT_OK) {
-					callbackContext.error(debugLog("Cancelled"));
-					return;
-				}
-				callbackContext.success(intent.getDataString());
-				break;
-			case openFolder:
-			case openFile:
-				callbackContext.success();
-				break;
-			case saveFile:
-				if (resultCode != Activity.RESULT_OK) {
-					callbackContext.error(debugLog("Cancelled"));
-					return;
-				}
-				String data = saveFileData.remove(callbackContext.getCallbackId());
-				if (data == null) {
-					callbackContext.error(debugLog("No saveFileData in onActivityResult"));
-					break;
-				}
-				try (OutputStream outputStream = cordovaInterface.getContext().getContentResolver()
-						.openOutputStream(intent.getData())) {
-					outputStream.write(Base64.decode(data, Base64.DEFAULT));
-					callbackContext.success(intent.getDataString());
-				} catch (Exception e) {
-					callbackContext.error(debugLog(e));
-				}
-				break;
-			default:
-				callbackContext.error(debugLog("Invalid request code: " + Action.values()[requestCode].toString()));
-		}	
-	}
+	// 	switch (Action.values()[requestCode]) {
+	// 		case selectFolder:
+	// 		case selectFile:
+	// 			if (resultCode != Activity.RESULT_OK) {
+	// 				callbackContext.error(debugLog("Cancelled"));
+	// 				return;
+	// 			}
+	// 			callbackContext.success(intent.getDataString());
+	// 			break;
+	// 		case openFolder:
+	// 		case openFile:
+	// 			callbackContext.success();
+	// 			break;
+	// 		case saveFile:
+	// 			if (resultCode != Activity.RESULT_OK) {
+	// 				callbackContext.error(debugLog("Cancelled"));
+	// 				return;
+	// 			}
+	// 			String data = saveFileData.remove(callbackContext.getCallbackId());
+	// 			if (data == null) {
+	// 				callbackContext.error(debugLog("No saveFileData in onActivityResult"));
+	// 				break;
+	// 			}
+	// 			try (OutputStream outputStream = cordovaInterface.getContext().getContentResolver()
+	// 					.openOutputStream(intent.getData())) {
+	// 				outputStream.write(Base64.decode(data, Base64.DEFAULT));
+	// 				callbackContext.success(intent.getDataString());
+	// 			} catch (Exception e) {
+	// 				callbackContext.error(debugLog(e));
+	// 			}
+	// 			break;
+	// 		default:
+	// 			callbackContext.error(debugLog("Invalid request code: " + Action.values()[requestCode].toString()));
+	// 	}	
+	// }
 }
