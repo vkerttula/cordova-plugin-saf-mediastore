@@ -579,34 +579,55 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		}
 	}
 
-	private JSONArray getFolderContents(Uri rootFolderUri) throws JSONException {
-	    JSONArray folderContents = new JSONArray();
-	    List<Uri> foldersToProcess = new ArrayList<>();
-	    foldersToProcess.add(rootFolderUri);
-	
-	    while (!foldersToProcess.isEmpty()) {
-		Uri folderUri = foldersToProcess.remove(0);
-		DocumentFile documentFile = DocumentFile.fromTreeUri(cordovaInterface.getContext(), folderUri);
-	
-		if (documentFile != null && documentFile.isDirectory()) {
-		    for (DocumentFile file : documentFile.listFiles()) {
-			JSONObject fileData = new JSONObject();
-			fileData.put("name", file.getName());
-			fileData.put("mimeType", file.getType() != null ? file.getType() : "unknown");
-	
-			if (file.isDirectory()) {
-			    foldersToProcess.add(file.getUri());
+	private JSONObject getFolderContents(Uri rootFolderUri) throws JSONException {
+		JSONObject rootObject = new JSONObject();
+		List<Folder> foldersToProcess = new ArrayList<>();
+		foldersToProcess.add(new Folder(rootFolderUri, rootObject));
+
+		while (!foldersToProcess.isEmpty()) {
+			Folder currentFolder = foldersToProcess.remove(0);
+			Uri folderUri = currentFolder.uri;
+			JSONObject parentObject = currentFolder.jsonObject;
+
+			DocumentFile documentFile = DocumentFile.fromTreeUri(cordovaInterface.getContext(), folderUri);
+
+			if (documentFile != null && documentFile.isDirectory()) {
+				JSONArray filesArray = new JSONArray();
+				for (DocumentFile file : documentFile.listFiles()) {
+					JSONObject fileData = new JSONObject();
+					fileData.put("name", file.getName());
+					fileData.put("mimeType", file.getType() != null ? file.getType() : "unknown");
+
+					if (file.isDirectory()) {
+						JSONObject subFolderObject = new JSONObject();
+						fileData.put("children", subFolderObject);
+						
+						foldersToProcess.add(new Folder(file.getUri(), subFolderObject));
+					}
+
+					filesArray.put(fileData);
+				}
+
+				parentObject.put("children", filesArray);
 			}
-	
-			folderContents.put(fileData);
-		    }
 		}
-	    }
-	    
-	    return folderContents;
+
+		return rootObject;
 	}
 
 	@Override
 	public void onReceiveValue(String value) {
 	}
+
+	private static class Folder {
+		Uri uri;
+		JSONObject jsonObject;
+
+		Folder(Uri uri, JSONObject jsonObject) {
+			this.uri = uri;
+			this.jsonObject = jsonObject;
+		}
+	}
 }
+
+
