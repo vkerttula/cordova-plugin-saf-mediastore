@@ -577,36 +577,35 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 	}
 
 	private JSONArray getFolderContents(Uri folderUri) throws JSONException {
-		JSONArray folderContents = new JSONArray();
-
-		Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(folderUri, DocumentsContract.getTreeDocumentId(folderUri));
-
-		Cursor cursor = cordovaInterface.getContext().getContentResolver().query(childrenUri, null, null, null, null);
-		if (cursor != null) {
-			try {
-				while (cursor.moveToNext()) {
-					String fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-					long fileSize = cursor.getLong(cursor.getColumnIndex(OpenableColumns.SIZE));
-					String mimeType = cursor.getString(cursor.getColumnIndex("mime_type"));
-
-					JSONObject fileData = new JSONObject();
-					fileData.put("name", fileName);
-					fileData.put("size", fileSize);
-					fileData.put("mimeType", mimeType);
-
-					if (mimeType == null || DocumentsContract.Document.MIME_TYPE_DIR.equals(mimeType)) {
-						Uri subFolderUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, cursor.getString(cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)));
-						fileData.put("children", getFolderContents(subFolderUri));
-					}
-
-					folderContents.put(fileData);
-				}
-			} finally {
-				cursor.close();
-			}
-		}
-		
-		return folderContents;
+	    JSONArray folderContents = new JSONArray();
+	    
+	    Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(folderUri, DocumentsContract.getTreeDocumentId(folderUri));
+	    
+	    Cursor cursor = cordovaInterface.getContext().getContentResolver().query(childrenUri, null, null, null, null);
+	    if (cursor != null) {
+	        try {
+	            while (cursor.moveToNext()) {
+	                String fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+	                String documentId = cursor.getString(cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID));
+	                String mimeType = cursor.getString(cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE));
+	                
+	                JSONObject fileData = new JSONObject();
+	                fileData.put("name", fileName);
+	                fileData.put("mimeType", mimeType);
+	                
+	                if (DocumentsContract.Document.MIME_TYPE_DIR.equals(mimeType)) {
+	                    Uri subFolderUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, documentId);
+	                    fileData.put("children", getFolderContents(subFolderUri));
+	                }
+	                
+	                folderContents.put(fileData);
+	            }
+	        } finally {
+	            cursor.close();
+	        }
+	    }
+	    
+	    return folderContents;
 	}
 
 	@Override
