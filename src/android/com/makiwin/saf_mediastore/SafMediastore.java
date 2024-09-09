@@ -116,19 +116,49 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		return true;
 	}
 
-	public boolean openFolder(JSONArray args, CallbackContext callbackContext) {
-		try {
-			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setDataAndType(Uri.parse(args.getString(0)), DocumentsContract.Document.MIME_TYPE_DIR);
-			this.callbackContext = callbackContext;
-			cordovaInterface.startActivityForResult(this, Intent.createChooser(intent, "Open folder"),
-					Action.openFolder.ordinal());
-			return true;
-		} catch (Exception e) {
-			callbackContext.error(debugLog(e));
-			return false;
+public boolean openFolder(JSONArray args, CallbackContext callbackContext) {
+	try {
+		Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+		intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+		this.callbackContext = callbackContext;
+		cordovaInterface.startActivityForResult(this, intent, Action.openFolder.ordinal());
+		return true;
+	} catch (Exception e) {
+		callbackContext.error(debugLog(e));
+		return false;
+	}
+}
+
+@Override
+public void onActivityResult(int requestCode, int resultCode, Intent data) {
+	if (requestCode == Action.openFolder.ordinal()) {
+		if (resultCode == Activity.RESULT_OK) {
+			Uri folderUri = data.getData();
+			if (folderUri != null) {
+				// Get the folder contents
+				Cursor cursor = cordovaInterface.getActivity().getContentResolver().query(folderUri, null, null, null, null);
+				if (cursor != null) {
+					try {
+						JSONArray folderContents = new JSONArray();
+						while (cursor.moveToNext()) {
+							String fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+							folderContents.put(fileName);
+						}
+						callbackContext.success(folderContents);
+					} finally {
+						cursor.close();
+					}
+				} else {
+					callbackContext.error("Failed to get folder contents");
+				}
+			} else {
+				callbackContext.error("No folder selected");
+			}
+		} else {
+			callbackContext.error("Folder selection cancelled");
 		}
 	}
+}
 
 	public boolean openFile(JSONArray args, CallbackContext callbackContext) {
 		try {
