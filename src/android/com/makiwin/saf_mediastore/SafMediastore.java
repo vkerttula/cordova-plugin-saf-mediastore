@@ -522,7 +522,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		if (requestCode == Action.openFolder.ordinal()) {
 			handleOpenFolderResult(resultCode, data);
 		} else if (requestCode == Action.selectFile.ordinal()) {
-			handleSelectFileResult(requestCode, resultCode, data);
+			// handleSelectFileResult(requestCode, resultCode, data);
 		} else if (requestCode < 0 || requestCode >= Action.values().length) {
 			callbackContext.error(debugLog("Invalid request code: " + requestCode));
 			return;
