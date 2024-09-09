@@ -523,36 +523,37 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			handleOpenFolderResult(resultCode, data);
 		} else if (requestCode == Action.selectFile.ordinal()) {
 			handleSelectFileResult(resultCode, data);
+		} else if (requestCode < 0 || requestCode >= Action.values().length) {
+			callbackContext.error(debugLog("Invalid request code: " + requestCode));
+			return;
 		}
 	}
 
 	private void handleOpenFolderResult(int resultCode, Intent data) {
-		if (requestCode == Action.openFolder.ordinal()) {
-			if (resultCode == Activity.RESULT_OK) {
-				Uri folderUri = data.getData();
-				if (folderUri != null) {
-					// Get the folder contents
-					Cursor cursor = cordovaInterface.getActivity().getContentResolver().query(folderUri, null, null, null, null);
-					if (cursor != null) {
-						try {
-							JSONArray folderContents = new JSONArray();
-							while (cursor.moveToNext()) {
-								String fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-								folderContents.put(fileName);
-							}
-							callbackContext.success(folderContents);
-						} finally {
-							cursor.close();
+		if (resultCode == Activity.RESULT_OK) {
+			Uri folderUri = data.getData();
+			if (folderUri != null) {
+				// Get the folder contents
+				Cursor cursor = cordovaInterface.getActivity().getContentResolver().query(folderUri, null, null, null, null);
+				if (cursor != null) {
+					try {
+						JSONArray folderContents = new JSONArray();
+						while (cursor.moveToNext()) {
+							String fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+							folderContents.put(fileName);
 						}
-					} else {
-						callbackContext.error("Failed to get folder contents");
+						callbackContext.success(folderContents);
+					} finally {
+						cursor.close();
 					}
 				} else {
-					callbackContext.error("No folder selected");
+					callbackContext.error("Failed to get folder contents");
 				}
 			} else {
-				callbackContext.error("Folder selection cancelled");
+				callbackContext.error("No folder selected");
 			}
+		} else {
+			callbackContext.error("Folder selection cancelled");
 		}
 	}
 
@@ -561,10 +562,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			debugLog("callbackContext==null in onActivityResult");
 			return;
 		}
-		if (requestCode < 0 || requestCode >= Action.values().length) {
-			callbackContext.error(debugLog("Invalid request code: " + requestCode));
-			return;
-		}
+
 		switch (Action.values()[requestCode]) {
 			case selectFolder:
 			case selectFile:
