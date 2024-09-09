@@ -576,36 +576,31 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		}
 	}
 
-	private JSONArray getFolderContents(Uri folderUri) throws JSONException {
-	    JSONArray folderContents = new JSONArray();
-	    
-	    Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(folderUri, DocumentsContract.getTreeDocumentId(folderUri));
-	    
-	    Cursor cursor = cordovaInterface.getContext().getContentResolver().query(childrenUri, null, null, null, null);
-	    if (cursor != null) {
-	        try {
-	            while (cursor.moveToNext()) {
-	                String fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-	                String documentId = cursor.getString(cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID));
-	                String mimeType = cursor.getString(cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE));
-	                
-	                JSONObject fileData = new JSONObject();
-	                fileData.put("name", fileName);
-	                fileData.put("mimeType", mimeType);
-	                
-	                if (DocumentsContract.Document.MIME_TYPE_DIR.equals(mimeType)) {
-	                    Uri subFolderUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, documentId);
-	                    fileData.put("children", getFolderContents(subFolderUri));
-	                }
-	                
-	                folderContents.put(fileData);
-	            }
-	        } finally {
-	            cursor.close();
-	        }
-	    }
-	    
-	    return folderContents;
+	private JSONArray getFolderContents(Uri rootFolderUri) throws JSONException {
+		JSONArray folderContents = new JSONArray();
+		Queue<Uri> foldersToProcess = new LinkedList<>();
+		foldersToProcess.add(rootFolderUri);
+
+		while (!foldersToProcess.isEmpty()) {
+			Uri folderUri = foldersToProcess.poll();
+			DocumentFile documentFile = DocumentFile.fromTreeUri(cordovaInterface.getContext(), folderUri);
+
+			if (documentFile != null && documentFile.isDirectory()) {
+				for (DocumentFile file : documentFile.listFiles()) {
+					JSONObject fileData = new JSONObject();
+					fileData.put("name", file.getName());
+					fileData.put("mimeType", file.getType() != null ? file.getType() : "unknown");
+
+					if (file.isDirectory()) {
+						foldersToProcess.add(file.getUri());
+					}
+
+					folderContents.put(fileData);
+				}
+			}
+		}
+		
+		return folderContents;
 	}
 
 	@Override
