@@ -472,27 +472,37 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 				callbackContext.success(intent.getDataString());
 				break;
 			case openFolder:
-				if (intent == null) {
-					callbackContext.error("Intent was null");
+				if (resultCode != Activity.RESULT_OK || intent == null) {
+					callbackContext.error(debugLog("Cancelled or intent is null"));
 					return;
 				}
+
 				Uri folderUri = intent.getData();
 				if (folderUri != null) {
-					// Get the folder contents
-					Cursor cursor = cordovaInterface.getContext().getContentResolver().query(folderUri, null, null, null, null);	
-					if (cursor != null) {
-						try {
+					try {
+						Cursor cursor = cordovaInterface.getContext().getContentResolver()
+								.query(folderUri, null, null, null, null);
+						
+						if (cursor != null) {
 							JSONArray folderContents = new JSONArray();
-							while (cursor.moveToNext()) {
-								String fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-								folderContents.put(fileName);
+							try {
+								while (cursor.moveToNext()) {
+									String fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+
+									JSONObject fileData = new JSONObject();
+									fileData.put("name", fileName);
+									
+									folderContents.put(fileData);
+								}
+								callbackContext.success(folderContents);
+							} finally {
+								cursor.close();
 							}
-							callbackContext.success(folderContents);
-						} finally {
-							cursor.close();
+						} else {
+							callbackContext.error("Failed to get folder contents");
 						}
-					} else {
-						callbackContext.error("Failed to get folder contents");
+					} catch (Exception e) {
+						callbackContext.error(debugLog(e));
 					}
 				} else {
 					callbackContext.error("No folder selected");
