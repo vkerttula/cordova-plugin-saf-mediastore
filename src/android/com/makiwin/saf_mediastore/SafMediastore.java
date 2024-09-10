@@ -18,6 +18,12 @@ import android.util.Log;
 import android.webkit.MimeTypeMap;
 import android.webkit.ValueCallback;
 import android.content.UriPermission;
+import android.content.pm.PackageManager;
+import android.content.Context;
+import android.os.Process;
+
+
+
 
 import androidx.annotation.RequiresApi;
 import androidx.documentfile.provider.DocumentFile;
@@ -144,15 +150,23 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			String folderUriString = args.getString(0);
 			Uri folderUri = Uri.parse(folderUriString);
 
-			JSONObject folderContents = getFolderContents(folderUri);
+			try {
+				JSONObject folderContents = getFolderContents(folderUri);
 
-			callbackContext.success(folderContents);
+				if (folderContents.length() == 0) {
+					callbackContext.error("No contents found or unable to access folder");
+					return false;
+				}	
+
+				callbackContext.success(folderContents);
+			} catch (Exception se) {
+				callbackContext.error("Security error: " + se.getMessage());
+				return false;
+			}
+
 			return true;
-		} catch (SecurityException se) {
-			callbackContext.error("Security error: " + se.getMessage());
-			return false;
-    	} catch (Exception e) {
-			callbackContext.error(debugLog(e));
+		} catch (Exception e) {
+			callbackContext.error("Error while reading folder: " + debugLog(e));
 			return false;
 		}
 	}
@@ -592,17 +606,16 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		List<Folder> foldersToProcess = new ArrayList<>();
 		foldersToProcess.add(new Folder(rootFolderUri, rootObject));
 
-		if (!hasReadPermissionForUri(rootFolderUri)) {
-			callbackContext.error("Read permission is not granted for this folder.");
-			throw new SecurityException("Read permission is not granted for this folder.");
-		}
-
 		while (!foldersToProcess.isEmpty()) {
 			Folder currentFolder = foldersToProcess.remove(0);
 			Uri folderUri = currentFolder.uri;
 			JSONObject parentObject = currentFolder.jsonObject;
 
 			DocumentFile documentFile = DocumentFile.fromTreeUri(cordovaInterface.getContext(), folderUri);
+			
+			if (documentFile == null) {
+				throw new SecurityException("Folder does not exist or read permission is not granted for this folder.");
+			}
 
 			if (documentFile != null && documentFile.isDirectory()) {
 				JSONArray filesArray = new JSONArray();
@@ -628,21 +641,6 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 
 		return rootObject;
 	}
-
-	private boolean hasReadPermissionForUri(Uri folderUri) {
-		ContentResolver resolver = cordovaInterface.getContext().getContentResolver(); 
-		boolean hasPermission = false;
-
-		for (UriPermission permission : resolver.getPersistedUriPermissions()) {
-			if (permission.getUri().equals(folderUri) && permission.isReadPermission()) {
-				hasPermission = true;
-				break;
-			}
-		}
-
-		return hasPermission;
-	}
-
 
 	@Override
 	public void onReceiveValue(String value) {
