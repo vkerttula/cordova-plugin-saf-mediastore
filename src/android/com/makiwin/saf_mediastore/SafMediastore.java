@@ -17,6 +17,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 import android.webkit.ValueCallback;
+import android.content.UriPermission;
 
 import androidx.annotation.RequiresApi;
 import androidx.documentfile.provider.DocumentFile;
@@ -56,6 +57,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		writeFile,
 		saveFile,
 		existsFile,
+		readFolder,
 	}
 
 	@Override
@@ -131,6 +133,30 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			return false;
 		}
 	}
+
+	public boolean readFolder(JSONArray args, CallbackContext callbackContext) {
+		try {
+			if (args == null || args.isNull(0)) {
+				callbackContext.error("No folder URI provided");
+				return false;
+			}
+
+			String folderUriString = args.getString(0);
+			Uri folderUri = Uri.parse(folderUriString);
+
+			JSONObject folderContents = getFolderContents(folderUri);
+
+			callbackContext.success(folderContents);
+			return true;
+		} catch (SecurityException se) {
+			callbackContext.error("Security error: " + se.getMessage());
+			return false;
+    	} catch (Exception e) {
+			callbackContext.error(debugLog(e));
+			return false;
+		}
+	}
+
 
 	public boolean openFile(JSONArray args, CallbackContext callbackContext) {
 		try {
@@ -475,24 +501,6 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 				callbackContext.success(intent.getDataString());
 				break;
 			case openFolder:
-				if (resultCode != Activity.RESULT_OK || intent == null) {
-					callbackContext.error(debugLog("Cancelled or intent is null"));
-					return;
-				}
-
-				Uri folderUri = intent.getData();
-				if (folderUri != null) {
-					try {
-						JSONObject folderContents = getFolderContents(folderUri);
-						
-						callbackContext.success(folderContents);
-					} catch (Exception e) {
-						callbackContext.error(debugLog(e));
-					}
-				} else {
-					callbackContext.error("No folder selected");
-				}
-				break;
 			case openFile:
 				callbackContext.success();
 				break;
@@ -584,6 +592,11 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		List<Folder> foldersToProcess = new ArrayList<>();
 		foldersToProcess.add(new Folder(rootFolderUri, rootObject));
 
+		if (!hasReadPermissionForUri(rootFolderUri)) {
+			callbackContext.error("Read permission is not granted for this folder.");
+			throw new SecurityException("Read permission is not granted for this folder.");
+		}
+
 		while (!foldersToProcess.isEmpty()) {
 			Folder currentFolder = foldersToProcess.remove(0);
 			Uri folderUri = currentFolder.uri;
@@ -596,6 +609,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 				for (DocumentFile file : documentFile.listFiles()) {
 					JSONObject fileData = new JSONObject();
 					fileData.put("name", file.getName());
+					fileData.put("uri", file.getUri());
 					fileData.put("mimeType", file.getType() != null ? file.getType() : "unknown");
 
 					if (file.isDirectory()) {
@@ -614,6 +628,21 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 
 		return rootObject;
 	}
+
+	private boolean hasReadPermissionForUri(Uri folderUri) {
+		ContentResolver resolver = cordovaInterface.getContext().getContentResolver(); 
+		boolean hasPermission = false;
+
+		for (UriPermission permission : resolver.getPersistedUriPermissions()) {
+			if (permission.getUri().equals(folderUri) && permission.isReadPermission()) {
+				hasPermission = true;
+				break;
+			}
+		}
+
+		return hasPermission;
+	}
+
 
 	@Override
 	public void onReceiveValue(String value) {
