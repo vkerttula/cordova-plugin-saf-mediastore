@@ -29,7 +29,8 @@ interface SafMediastore {
     mimeType: string;
     filename: string;
   }>;
-  readFolder(uri: string): Promise<JSONObject>
+  readFolder(uri: string): Promise<JSONObject>;
+  arePermissionsGranted(uri: string): Promise<boolean>;
 }
 
 interface CordovaPlugins {
