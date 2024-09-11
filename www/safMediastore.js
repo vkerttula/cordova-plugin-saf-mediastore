@@ -26,7 +26,8 @@ module.exports = (function () {
     'existsFile',
     'getDataForOpenFile',
     'touchFile',
-    'readFolder'
+    'readFolder',
+    'arePermissionsGranted'
   ].forEach((action) => (exports[action] = callPromise(action)));
 
   return exports;
