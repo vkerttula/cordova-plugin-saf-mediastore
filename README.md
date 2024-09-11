@@ -10,7 +10,7 @@ This plugin allows you to read and save files using the Storage Access Framework
 selectFolder(uri:string):Promise<string>
 ```
 
-Launches an Intent to select a folder to which files can be saved. Returns the content URI.
+Launches an Intent to select a folder to which files can be saved or read from. Returns the content URI. The selected URI is also added to the SharedPreferences for later use.
 
 ```typescript
 selectFile(uri:string):Promise<string>
@@ -102,7 +102,28 @@ getDataForOpenFile(uri: string): Promise<{
   }>;
 ```
 
-From Content URI return information about the file
+From Content URI return information about the file.
+
+```typescript
+readFolder(uri: string): Promise<{
+    uri: string;
+    mimeType: string;
+    filename: string;
+  }>;
+```
+
+Retrieves the contents of a folder specified by the given URI. This function returns a JSON object representing the contents of the folder, including files and subfolders.
+
+
+```typescript
+arePermissionsGranted(uri: string): Promise<{
+    uri: string;
+    mimeType: string;
+    filename: string;
+  }>;
+```
+
+Checks whether the necessary permissions are granted for the folder specified by the given URI. This function verifies if the URI has both read and write permissions.
 
 To call methods:
 
