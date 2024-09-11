@@ -116,14 +116,10 @@ Retrieves the contents of a folder specified by the given URI. This function ret
 
 
 ```typescript
-arePermissionsGranted(uri: string): Promise<{
-    uri: string;
-    mimeType: string;
-    filename: string;
-  }>;
+arePermissionsGranted(uri: string): Promise<boolean>;
 ```
 
-Checks whether the necessary permissions are granted for the folder specified by the given URI. This function verifies if the URI has both read and write permissions.
+Checks whether the necessary permissions are granted for the folder specified by the given URI. This function verifies if the URI has both read and write permissions. Returns `true` if permissions are granted.
 
 To call methods:
 
