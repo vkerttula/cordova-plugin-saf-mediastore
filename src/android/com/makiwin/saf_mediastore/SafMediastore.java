@@ -21,6 +21,9 @@ import android.content.UriPermission;
 import android.content.pm.PackageManager;
 import android.content.Context;
 import android.os.Process;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 
 
 
@@ -48,6 +51,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ArrayList;
 
+
 public class SafMediastore extends CordovaPlugin implements ValueCallback<String> {
 	protected CallbackContext callbackContext;
 	protected HashMap<String, String> saveFileData = new HashMap<>();
@@ -64,6 +68,7 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		saveFile,
 		existsFile,
 		readFolder,
+		arePermissionsGranted
 	}
 
 	@Override
@@ -507,6 +512,30 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		}
 		switch (Action.values()[requestCode]) {
 			case selectFolder:
+				if (resultCode != Activity.RESULT_OK) {
+					callbackContext.error(debugLog("Cancelled"));
+					return;
+				}
+				if (intent != null && intent.getData() != null) {
+					Uri selectedUri = intent.getData();
+					
+					try {
+						cordovaInterface.getActivity().getContentResolver().takePersistableUriPermission(selectedUri, 
+							Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+						
+						SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(cordovaInterface.getActivity());
+						SharedPreferences.Editor editor = sharedPreferences.edit();
+						editor.putString("FOLDER_URI", selectedUri.toString());
+						editor.apply();
+
+						callbackContext.success(selectedUri.toString());
+					} catch (Exception e) {
+						callbackContext.error("Failed to create persistable URI permission: " + e.getMessage());
+					}
+				} else {
+					callbackContext.error(debugLog("No URI returned"));
+				}
+				break;
 			case selectFile:
 				if (resultCode != Activity.RESULT_OK) {
 					callbackContext.error(debugLog("Cancelled"));
@@ -612,10 +641,6 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 			JSONObject parentObject = currentFolder.jsonObject;
 
 			DocumentFile documentFile = DocumentFile.fromTreeUri(cordovaInterface.getContext(), folderUri);
-			
-			if (documentFile == null) {
-				throw new SecurityException("Folder does not exist or read permission is not granted for this folder.");
-			}
 
 			if (documentFile != null && documentFile.isDirectory()) {
 				JSONArray filesArray = new JSONArray();
@@ -640,6 +665,36 @@ public class SafMediastore extends CordovaPlugin implements ValueCallback<String
 		}
 
 		return rootObject;
+	}
+
+	public boolean arePermissionsGranted(JSONArray args, CallbackContext callbackContext) throws JSONException {
+		Log.d("Debug", "Starting permission check with following args: " + args);
+
+		if (args == null || args.isNull(0)) {
+			callbackContext.error("No folder URI provided");
+			return false;
+		}
+
+		String folderUriString = args.getString(0);
+		Uri folderUri = Uri.parse(folderUriString);
+
+		Log.d("Debug", "Provided URI: " + folderUri);
+
+		List<UriPermission> permissions = cordovaInterface.getContext().getContentResolver().getPersistedUriPermissions();
+
+		for (UriPermission permission : permissions) {
+			Uri persistedUri = permission.getUri();
+
+			Log.d("Debug", "Persisted URI: " + persistedUri);
+
+			if (persistedUri.equals(folderUri) && permission.isWritePermission() && permission.isReadPermission()) {
+				callbackContext.success(1); 
+				return true;
+			}
+		}
+
+		callbackContext.error("No matching permissions."); 
+		return false;
 	}
 
 	@Override
